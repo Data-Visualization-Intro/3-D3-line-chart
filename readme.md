@@ -1,4 +1,4 @@
-# D3
+# D3 - "Data Driven Documents."
 
 In this module, we'll create a line chart that plots daily temperature.
 
@@ -21,7 +21,7 @@ Create `index.html` in the app folder and add a wrapper div and a link to D3 and
     <div id="wrapper"></div>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="./chart.js"></script>
+    <script src="chart.js"></script>
   </body>
 </html>
 ```
@@ -32,7 +32,7 @@ In `chart.js` define a function named `drawLineChart()` and run it:
 
 ```js
 async function drawLineChart() {
-  // write your code here
+  document.body.innerText = d3.version;
 }
 
 drawLineChart();
@@ -40,11 +40,9 @@ drawLineChart();
 
 The first step to visualizing any dataset is understanding its structure. To get a good look at our data we will load the JSON file that holds our data.
 
-D3.js has methods for fetching and parsing files of different formats in the [d3-fetch module](https://github.com/d3/d3-fetch) - for example, `d3.csv()`, `d3.json()`, and `d3.xml()`.
+D3.js has methods for fetching and parsing files of different formats in the [d3-fetch module](https://github.com/d3/d3-fetch) - i.e. `d3.csv()`, `d3.json()`, and `d3.tsv()`.
 
-Since we're working with a JSON file, we want to pass our file path to `d3.json()`.
-
-Let's create a new variable named dataset and use `d3.json()` to load the contents of our JSON file:
+Create a new variable `dataset` and use `d3.json()` to load the contents of our JSON file:
 
 ```js
 async function drawLineChart() {
@@ -57,19 +55,19 @@ drawLineChart();
 
 Open `index.html` using Live Server and examine the console.
 
-`await` is a JavaScript keyword that will pauses execution until a Promise is resolved.
+`await` is a JavaScript keyword pauses execution until a Promise is resolved.
 
 Note that the `drawLineChart()` function declaration is preceded by the keyword `async`. `await` will only work within an function maked as `async`.
 
-This means that any code after `await d3.json("./data/my_weather_data.json")` will wait until dataset is defined.
+This means that any code after `await d3.json("./data/my_weather_data.json")` will run only after dataset is defined.
 
 ## Examine the Data
+
+Our dataset is array of objects, with one object per day.
 
 Send the first day to the console in tabular form:
 
 `console.table(dataset[0])`
-
-Our dataset is array of objects, with one object per day.
 
 We'll start by looking at `temperatureMax` over time.
 
@@ -78,13 +76,13 @@ Our timeline will have two axes:
 1. a y axis (vertical) on the left comprised of max temperature values
 1. an x axis (horizontal) on the bottom comprised of dates
 
-To grab the correct metrics from each data point, we'll use accessor functions.
+To grab the correct metrics from each data point, we'll use `accessor functions`.
 
 Accessor functions convert a single data point into the metric value.
 
 > Think of a dataset as a table. A data point would be a row in that table. In this case, a data point represents an object in our dataset array that holds the weather data for one day.
 
-Lets try it out by creating a yAccessor function that will take a data point and return the max temperature.
+We'll create a yAccessor function that will take a data point and return the max temperature.
 
 We will use `yAccessor` for plotting points on the y axis.
 
@@ -103,13 +101,13 @@ const xAccessor = (d) => d.date;
 console.log(xAccessor(dataset[0]));
 ```
 
-The date value in our dataset is a string (i.e. "2018-12-25").
+The date value in our dataset is a string.
 
 Unfortunately, this string won't work on our x axis. We know how far "2018-12-25" is from "2018-12-29" but a computer needs a date in a form it can work with.
 
 JavaScript `Date` objects represent a single moment in time in a platform-independent format
 
-We need to convert the dataset strings into JavaScript Dates. d3 has a [d3-time-format](https://github.com/d3/d3-time-format) module with handy methods for parsing and formatting dates.
+We need to convert the dataset strings into JavaScript Dates. d3 has a [d3-time-format](https://github.com/d3/d3-time-format) module with methods for parsing and formatting dates.
 
 The `d3.timeParse()` method:
 
@@ -135,11 +133,13 @@ drawLineChart();
 
 When we call `xAccessor(dataset[0])` we get the first day's date as a [JavaScript Date object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date).
 
+### Why Accessor Functions?
+
 Defining accessor functions are a best practice. Creating separate functions to read the values from our data points helps us in a many ways:
 
 - Easy changes: every chart is likely to change — whether that change is due to business requirements, design, or data structure. These changing requirements are especially prevalent when creating dashboards with dynamic data, where you might need to handle a new edge case two months later. Having accessor functions in one place in a chart file makes them easy to update.
 - Documentation: having these functions at the top of a file can give you a quick reminder of what metrics the chart is plotting and the structure of the data.
-- Framing: sitting down with the data and planning what metrics we'll need to access is a great way to start making a chart. It prevents you from rushing in only to realize later that another type of chart would be better suited to the data.
+- Framing: sitting down with the data and planning what metrics you need to access is a great way to start making a chart. It prevents you from rushing in only to realize later that another type of chart would be better suited to the data.
 
 ## Chart Layout
 
@@ -156,6 +156,25 @@ This distinction will help us separate the amount of space we need for extraneou
 When adding a chart to a webpage, we start with the amount of space we have available for the chart. Then we decide how much space we need for the margins, which will accommodate the chart axes and labels. What's left is how much space we have for our data elements.
 
 We will rarely have the option to decide how large our timeline is and then build up from there. Our charts will need to be accommodating of window sizes, surrounding text, and more.
+
+> A quick note on JavaScript objects:
+
+```js
+let arr = [1, "text", true];
+console.log(obj[2]);
+console.log(typeof obj[2]);
+
+let obj = {
+  a: 1,
+  b: 2,
+};
+
+console.log(obj.a);
+
+obj.c = 3;
+
+delete obj.a;
+```
 
 Define a dimensions object that will contain the size of the wrapper and the margins. We'll have one margin defined for each side of the chart: top, right, bottom, and left.
 
@@ -196,10 +215,14 @@ async function drawLineChart() {
       left: 60,
     },
   };
+
+  // NEW
   dimensions.boundedWidth =
     dimensions.width - dimensions.margin.left - dimensions.margin.right;
   dimensions.boundedHeight =
     dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
+
+  console.log(dimensions);
 }
 
 drawLineChart();
@@ -217,7 +240,7 @@ if (!window.dimensions) {
 
 ## Adding Elements
 
-To add elements to our page we'll use the #wrapper element.
+We'll use the #wrapper element to add elements to our page.
 
 In previous lessons we used `document.querySelector()` to select an element on the page. D3's [d3-selection](https://github.com/d3/d3-selection) module has helper functions to select and modify the DOM.
 
@@ -254,7 +277,7 @@ async function drawLineChart() {
 
   const wrapper = d3.select("#wrapper");
   const svg = wrapper.append("svg");
-  console.log(svg);
+  console.log(wrapper, svg);
 }
 
 drawLineChart();
@@ -268,15 +291,13 @@ drawLineChart();
 </style>
 ```
 
-Log svg to the console, expand the \_groups key, and note that the linked element is our new <svg> element.
+Unlike `document.querySelector` d3.select() returns a d3 selection object specially configured to work within the d3 system.
 
-Expand the \_groups object and hover over the <svg> element, the browser will highlight the corresponding DOM element on the webpage.
+Expand the `_groups` key, and note that the linked element is our new <svg> element.
 
-On hover, the browser will also show the element's size: 300px by 150px - the default size for SVG elements in Google Chrome.
+Hover over the <svg> element and the browser will highlight the corresponding DOM element on the webpage and show the element's size: 300px by 150px - the default size for SVG elements in Google Chrome.
 
 SVG elements don't scale the way most DOM elements do — there are many rules that will be unfamiliar to an experienced web developer.
-
-Let's tell our <svg> element what size we want it to be.
 
 d3 selection objects have an `.attr()` method that will add or replace an attribute on the selected DOM element. The first argument is the attribute name and the second argument is the value.
 
@@ -287,7 +308,7 @@ svg.attr("width", dimensions.width);
 svg.attr("height", dimensions.height);
 ```
 
-The value argument to .attr() can either be a constant (all we need right now) or a function, (which we'll need later).
+> The value argument to .attr() can either be a constant (all we need right now) or a function, (which we'll need later).
 
 ### A Note on Style
 
@@ -426,7 +447,9 @@ On our y axis, we want to plot the max temperature for every day.
 
 Before we draw our chart, we need to decide what temperatures we want to visualize.
 
-Do we need to plot temperatures over 1,000°F or under 0°F? We could hard-code a standard set of temperatures, but that range could be too large (making the data hard to see), or it could be too small or offset (cutting off the data). Instead, let's use the actual range by finding the lowest and highest temperatures in our dataset.
+Do we need to plot temperatures over 1,000°F or under 0°F? We could hard-code a standard set of temperatures, but that range could be too large (making the data hard to see), or it could be too small or offset (cutting off the data).
+
+Instead, let's use the actual range by finding the lowest and highest temperatures in our dataset.
 
 > We've all seen over-dramatized timelines with a huge drop, only to realize that the change is relatively small. When defining an axis, we'll often want to start at 0 to show scale. We'll go over this more when we talk about types of data.
 
@@ -464,10 +487,18 @@ Let's create a scale that converts those degrees into a y value. If our y axis i
 
 <!-- ![scale](samples/images/scale-temp-px.png) -->
 
-> Test d3 scales by adding this outside the function:
+> Test d3 scales by coding this in the play ground:
 
 ```js
 var x = d3.scaleLinear().domain([10, 130]).range([0, 300]);
+
+var linearScale = d3.scaleLinear().domain([0, 100]).range([0, 600]).clamp(true);
+
+console.log(linearScale(-20));
+console.log(linearScale(50));
+console.log(linearScale(105));
+
+console.log(linearScale.invert(300));
 ```
 
 > And try `x(20)`, `x(50)` and `x(130)` in the browser console. Remove it once done.
@@ -534,7 +565,7 @@ const freezingTemperatures = bounds
   .attr("width", dimensions.boundedWidth)
   .attr("y", freezingTemperaturePlacement)
   .attr("height", dimensions.boundedHeight - freezingTemperaturePlacement)
-  .attr("fill", "#e0f3f3");
+  .attr("fill", "#87ceed");
 ```
 
 Look at the rectangle in the Elements panel to see how the .attr() methods manipulated it.
@@ -542,16 +573,33 @@ Look at the rectangle in the Elements panel to see how the .attr() methods manip
 ```js
 <rect
   x="0"
-  width="1530"
-  y="325.7509689922481"
-  height="24.24903100775191"
-  fill="rgb(224, 243, 243)"
+  width="735.9"
+  y="264.34844192634563"
+  height="80.65155807365437"
+  fill="#87ceed"
 ></rect>
 ```
 
-Note: some SVG styles can be set with either a CSS style or an attribute value, such as fill, stroke, and stroke-width. It's up to you whether you want to set them with .style() or .attr(). Once we're familiar with styling our charts, we'll apply classes using `.attr("class", "class-name")` and add styles using CSS.
+> Some SVG styles can be set with either a CSS style or an attribute value such as fill, stroke, and stroke-width. It's up to you whether you want to set them with .style() or .attr(). Once we're familiar with styling our charts, we'll apply classes using `.attr("class", "class-name")` and add styles using CSS.
 
-> We're using .attr() to set the fill because an attribute has a lower CSS precedence than linked stylesheets, which will let us overwrite the value. If we used .style(), we'd be setting an inline style which would require an !important CSS declaration to override.
+> We're using .attr() to set the fill because an attribute has a lower CSS precedence than linked stylesheets, which will let us overwrite the value. If we used `.style()` we'd be setting an inline style which would require an `!important` CSS declaration to override.
+
+## JavaScript Dates and Scales
+
+Run the below in the playground:
+
+```js
+var timeScale = d3
+  .scaleTime()
+  .domain([new Date(2021, 0, 1), new Date()])
+  .range([0, 100]);
+
+console.log(timeScale(new Date(2021, 0, 15)));
+console.log(timeScale(new Date(2021, 3, 15)));
+console.log(timeScale(new Date()));
+
+console.log(timeScale.invert(50));
+```
 
 Create a scale for the x axis. This will look like our y axis but, since we're working with date objects, we'll use a time scale which knows how to handle date objects.
 
@@ -644,7 +692,7 @@ Our generator needs two pieces of information:
 
 We set these values with the x and y method, respectively, which each take one parameter: a function to convert a data point into an x or y value.
 
-We want to use our accessor functions, but remember: our accessor functions return the unscaled value.
+We want to use our accessor functions, but _our accessor functions return the unscaled value_.
 
 We'll transform our data point with both the accessor function and the scale to get the scaled value in pixel space.
 
@@ -659,7 +707,7 @@ Now we're ready to add the path element to our bounds.
 
 `const line = bounds.append("path")`
 
-Let's feed our dataset to our line generator to create the d attribute and tell the line what shape to be.
+Feed our dataset to our line generator to create the d attribute and tell the line what shape to be.
 
 ```js
 const line = bounds.append("path").attr("d", lineGenerator(dataset));
@@ -674,7 +722,7 @@ const line = bounds
   .append("path")
   .attr("d", lineGenerator(dataset))
   .attr("fill", "none")
-  .attr("stroke", "#af9358")
+  .attr("stroke", "steelblue")
   .attr("stroke-width", 2);
 ```
 
@@ -754,7 +802,7 @@ async function drawLineChart() {
     .append("path")
     .attr("d", lineGenerator(dataset))
     .attr("fill", "none")
-    .attr("stroke", "#af9358")
+    .attr("stroke", "steelblue")
     .attr("stroke-width", 2);
 }
 
@@ -803,9 +851,9 @@ Note that this code does exactly the same thing as the snippet above - we pass t
 const yAxis = bounds.append("g").call(yAxisGenerator);
 ```
 
-The small lines perpendicular to the axis are called tick marks. d3 has made behind-the-scenes decisions about how many tick marks to make and how far apart to draw them. We'll customize this in later sessions.
+The small lines perpendicular to the axis are called tick marks. D3 has made behind-the-scenes decisions about how many tick marks to make and how far apart to draw them. We'll customize this in later sessions.
 
-Create the x axis in the same way, this time using d3.axisBottom().
+Create the x axis in the same way, this time using `d3.axisBottom()`.
 
 ```js
 const xAxisGenerator = d3.axisBottom().scale(xScale);
@@ -934,4 +982,216 @@ async function drawLineChart() {
     .style("transform", `translateY(${dimensions.boundedHeight}px)`);
 }
 drawLineChart();
+```
+
+## Instructor Notes
+
+### Quantize Scales
+
+```js
+(function () {
+  var body = document.querySelector("body");
+  body.style["fontFamily"] = "monospace";
+  body.style["fontSize"] = "2em";
+  console.log = function (x) {
+    body.innerText += x + "\n";
+  };
+})();
+
+var quantizeScale = d3
+  .scaleQuantize()
+  .domain([0, 100])
+  .range(["red", "white", "green"]);
+
+console.log(quantizeScale(22));
+console.log(quantizeScale(50));
+console.log(quantizeScale(88));
+
+console.log(quantizeScale.invertExtent("white"));
+```
+
+### Ordinal Scales
+
+```js
+(function () {
+  var body = document.querySelector("body");
+  body.style["fontFamily"] = "monospace";
+  body.style["fontSize"] = "2em";
+  console.log = function (x) {
+    body.innerText += x + "\n";
+  };
+})();
+
+var ordinalScale = d3
+  .scaleOrdinal()
+  .domain(["poor", "good", "great"])
+  .range(["red", "white", "green"]);
+
+console.log(ordinalScale("good"));
+console.log(ordinalScale("great"));
+console.log(ordinalScale("poor"));
+```
+
+### Load and Inspect Data
+
+Review this.
+
+```js
+(function () {
+  var body = document.querySelector("body");
+  body.style["fontFamily"] = "monospace";
+  body.style["fontSize"] = "2em";
+  console.log = function (x) {
+    body.innerText += x + "\n";
+  };
+})();
+
+d3.json("data/data.json", function (data) {
+  var extent = d3.extent(data, function (d) {
+    return d.age;
+  });
+  console.log(extent);
+
+  var scale = d3.scaleLinear().domain(extent).range([0, 600]);
+
+  console.log(scale(37));
+
+  var ages = d3.set(data, function (d) {
+    return d.age;
+  });
+  console.log(ages.values());
+});
+```
+
+### Select DOM Elements
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Egghead D3 v4</title>
+    <script src="//d3js.org/d3.v4.min.js"></script>
+    <style>
+      div {
+        display: inline-block;
+        border: 1px solid black;
+      }
+      a {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="title">
+      <a href="#">About</a>
+      <a href="#">Products</a>
+      <a href="#">Contact</a>
+    </div>
+
+    <a class="action" href="#">Buy Now</a>
+
+    <script>
+      var div = d3.select("div");
+      console.log(div.nodes());
+
+      var divLinks = div.selectAll("a");
+      console.log(divLinks.nodes());
+
+      var secondLink = d3.selectAll("a:nth-child(2)");
+      console.log(secondLink.nodes());
+
+      var allLinks = d3.selectAll(document.links);
+      console.log(allLinks.size());
+    </script>
+  </body>
+</html>
+```
+
+### Modify DOM Elements
+
+Review with getter and setter methods, coding style (chaining) and additional methods (style etc.)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Egghead D3 v4</title>
+    <script src="//d3js.org/d3.v4.min.js"></script>
+    <style>
+      div {
+        display: inline-block;
+        border: 1px solid black;
+      }
+      a {
+        display: block;
+      }
+      .red {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="title">
+      <a href="#">About</a>
+      <a href="#">Products</a>
+      <a href="#">Contact</a>
+    </div>
+
+    <a class="action" href="#">Buy Now</a>
+
+    <script>
+      d3.selectAll("a:nth-child(2)")
+        .attr("href", "http://google.com")
+        .classed("red", true)
+        .html("Inventory <b>SALE</b>");
+    </script>
+  </body>
+</html>
+```
+
+### Create New Elements
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Egghead D3 v4</title>
+    <script src="//d3js.org/d3.v4.min.js"></script>
+    <style>
+      div {
+        display: inline-block;
+        border: 1px solid black;
+      }
+      a {
+        display: block;
+      }
+      .red {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="title">
+      <a href="#">About</a>
+      <a href="#">Products</a>
+      <a href="#">Contact</a>
+    </div>
+
+    <a class="action" href="#">Buy Now</a>
+
+    <script>
+      // prettier-ignore
+      d3.select(".title")
+        .append("div")
+          .style("color", "red")
+          .html("Inventory <b>SALE</b>")
+        .append("button")
+          .style("display", "block")
+          .text("submit");
+    </script>
+  </body>
+</html>
 ```
