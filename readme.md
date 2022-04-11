@@ -1,8 +1,8 @@
-# D3 - "Data Driven Documents."
+# D3 - Data Driven Documents
 
-In this module, we'll create a line chart that plots daily temperature.
+In this module, we'll create a line chart that plots daily temperature using d3.
 
-Here's what our [line chart](https://dataviz-exercises.netlify.app/temperatures/index.html) will look like when we're finished.
+Here's what our [line chart](https://dataviz-exercises.netlify.app/temperatures/index.html) will look like once we're finished.
 
 The dataset we'll be analyzing contains 365 days of daily weather metrics. The file is in [JSON]() format and includes 2021 weather data for New York City from the Open Sky weather API.
 
@@ -25,6 +25,8 @@ Create `index.html` in the app folder and add a wrapper div and a link to D3 and
   </body>
 </html>
 ```
+
+Open the page using Live Server.
 
 ## Loading the Data
 
@@ -82,19 +84,24 @@ Accessor functions convert a single data point into the metric value.
 
 > Think of a dataset as a table. A data point would be a row in that table. In this case, a data point represents an object in our dataset array that holds the weather data for one day.
 
-We'll create a yAccessor function that will take a data point and return the max temperature.
+We'll create a `yAccessor` function that will take a data point and return the max temperature.
 
 We will use `yAccessor` for plotting points on the y axis.
 
 Looking at the data point in our console, we can see that a day's max temperature is located on the object's `temperatureMax` key. To access this value, our yAccessor function looks like this:
 
 ```js
-const yAccessor = (d) => d.temperatureMax;
-console.log(yAccessor); // yAccessor is a variable pointing to a function
-console.log(yAccessor(dataset[0])); // is the first max temp in dataset
+async function drawLineChart() {
+  const dataset = await d3.json("./data/my_weather_data.json");
+  const yAccessor = (d) => d.temperatureMax;
+  console.log(yAccessor); // yAccessor is a variable pointing to a function
+  console.log(yAccessor(dataset[0])); // is the first max temp in dataset
+}
+
+drawLineChart();
 ```
 
-Next, we'll need an xAccessor function that will return a point's date, which we will use for plotting points on the x axis.
+Next, we'll need an `xAccessor` function that will return a point's date, which we will use for plotting points on the x axis.
 
 ```js
 const xAccessor = (d) => d.date;
@@ -114,7 +121,7 @@ The `d3.timeParse()` method:
 - takes a string specifying a date format, and
 - outputs a function that will parse dates of that format.
 
-For example, `d3.timeParse("%Y")` will parse a string with just a year (eg. "2021").
+For example, `d3.timeParse("%Y")` will parse a string (create a Date object) with just a year (e.g. "2021").
 
 Let's create a date parser function and use it to transform our date strings into date objects:
 
@@ -147,11 +154,11 @@ When drawing a chart, there are two containers whose dimensions we need to defin
 
 ![terminology](samples/images/terminology.png)
 
-The wrapper contains the entire chart: the data elements, the axes, the labels, etc. Every SVG element will be contained inside here.
+The `wrapper` contains the entire chart: the data elements, the axes, the labels, etc. Every SVG element will be contained inside here.
 
-The bounds contain all of our data elements: in this case, our line.
+The `bounds` contain all of our data elements: in this case, our line.
 
-This distinction will help us separate the amount of space we need for extraneous elements (axes, labels), and let us focus on our main task: plotting our data. One reason this is so important to define up front is the inconsistent and unfamiliar way SVG elements are sized.
+This distinction will help us separate the amount of space we need for extraneous elements (axes, labels), and let us focus on our main task: plotting our data.
 
 When adding a chart to a webpage, we start with the amount of space we have available for the chart. Then we decide how much space we need for the margins, which will accommodate the chart axes and labels. What's left is how much space we have for our data elements.
 
@@ -297,9 +304,9 @@ Expand the `_groups` key, and note that the linked element is our new <svg> elem
 
 Hover over the <svg> element and the browser will highlight the corresponding DOM element on the webpage and show the element's size: 300px by 150px - the default size for SVG elements in Google Chrome.
 
-SVG elements don't scale the way most DOM elements do — there are many rules that will be unfamiliar to an experienced web developer.
+SVG elements don't scale the way most DOM elements do — there are many rules that will be unfamiliar to experienced web developers.
 
-d3 selection objects have an `.attr()` method that will add or replace an attribute on the selected DOM element. The first argument is the attribute name and the second argument is the value.
+D3 selection objects have an `.attr()` method that will add or replace an attribute on the selected DOM element. The first argument is the attribute name and the second argument is the value.
 
 ```js
 const wrapper = d3.select("#wrapper");
@@ -487,11 +494,9 @@ Let's create a scale that converts those degrees into a y value. If our y axis i
 
 <!-- ![scale](samples/images/scale-temp-px.png) -->
 
-> Test d3 scales by coding this in the play ground:
+> Test d3 scales with clamping by coding this in the playground:
 
 ```js
-var x = d3.scaleLinear().domain([10, 130]).range([0, 300]);
-
 var linearScale = d3.scaleLinear().domain([0, 100]).range([0, 600]).clamp(true);
 
 console.log(linearScale(-20));
@@ -540,7 +545,7 @@ Let's test it by logging some values to the console. At what y value is the free
 
 `console.log(yScale(32))`
 
-The outputted number should tell us how far away the freezing point will be from the bottom of the y axis.
+The logged number should tell us how far away the freezing point will be from the top of the svg.
 
 Let's visualize this by adding a rectangle covering all temperatures below freezing using the SVG <rect> element. We need to give it four attributes: x, y, width, and height.
 
@@ -589,6 +594,8 @@ Look at the rectangle in the Elements panel to see how the .attr() methods manip
 Run the below in the playground:
 
 ```js
+console.log(new Date(2021, 0, 1));
+
 var timeScale = d3
   .scaleTime()
   .domain([new Date(2021, 0, 1), new Date()])
@@ -601,6 +608,8 @@ console.log(timeScale(new Date()));
 console.log(timeScale.invert(50));
 ```
 
+Note the JavaScript month start at 0. Invert returns the date from a number within our range.
+
 Create a scale for the x axis. This will look like our y axis but, since we're working with date objects, we'll use a time scale which knows how to handle date objects.
 
 ```js
@@ -610,7 +619,7 @@ const xScale = d3
   .range([0, dimensions.boundedWidth]);
 ```
 
-Final:
+Code to this point:
 
 ```js
 async function drawLineChart() {
@@ -679,7 +688,7 @@ drawLineChart();
 
 ## Drawing the Timeline
 
-The timeline itself will be a single path SVG element. Path elements take a d (data) attribute that creates the shape.
+The timeline itself will be a single path SVG element. As we have seen, path elements take a `d` (data) attribute that creates the shape.
 
 [d3-shape](https://github.com/d3/d3-shape) has a `d3.line()` method that creates a generator that converts data points into a d string:
 
@@ -692,9 +701,7 @@ Our generator needs two pieces of information:
 
 We set these values with the x and y method, respectively, which each take one parameter: a function to convert a data point into an x or y value.
 
-We want to use our accessor functions, but _our accessor functions return the unscaled value_.
-
-We'll transform our data point with both the accessor function and the scale to get the scaled value in pixel space.
+We want to use our accessor functions, but _our accessor functions return the unscaled value_ so we'll transform our data point with both the accessor function and the scale to get the scaled value in pixel space.
 
 ```js
 const lineGenerator = d3
@@ -704,8 +711,6 @@ const lineGenerator = d3
 ```
 
 Now we're ready to add the path element to our bounds.
-
-`const line = bounds.append("path")`
 
 Feed our dataset to our line generator to create the d attribute and tell the line what shape to be.
 
@@ -865,13 +870,7 @@ Create another <g> element and draw our axis.
 const xAxis = bounds.append("g").call(xAxisGenerator);
 ```
 
-We could `.call()` our x axis directly on our bounds:
-
-`const xAxis = bounds.call(xAxisGenerator)`
-
-This would create our axis directly under our bounds (in the DOM).
-
-However, it's a good idea to create a <g> element to contain our axis elements for three reasons:
+It's a good idea to create a <g> element to contain our axis elements for three reasons:
 
 1. to keep our DOM organized, for debugging or exporting
 2. if we want to remove or update our axis, we'll want an easy way to target all of the elements
@@ -879,7 +878,7 @@ However, it's a good idea to create a <g> element to contain our axis elements f
 
 The axis looks right, but it's in the wrong place.
 
-Why didn't `.axisBottom()` draw the axis in the right place? d3's axis generator functions know where to place the tick marks and tick labels relative to the axis line, but they have no idea where to place the axis itself.
+Why didn't `.axisBottom()` draw the axis in the right place? D3's axis generator functions know where to place the tick marks and tick labels relative to the axis line but they have no idea where to place the axis itself.
 
 To move the x axis to the bottom, we can shift the x axis group, similar to how we shifted our chart bounds using a CSS transform.
 
