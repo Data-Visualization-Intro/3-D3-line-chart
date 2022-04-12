@@ -1305,6 +1305,4 @@ Here are a few resources for finding interesting datasets:
 
 [Data is Plural](https://docs.google.com/spreadsheets/d/1wZhPLMCHKJvwOkP4juclhjFgqIY8fQFMemwKL2c64vk/edit#gid=0)
 
-[Data World](https://www.newline.co/courses/fullstack-d3-masterclass/data.world)
-
 [The Pudding datasets](https://github.com/the-pudding/data)
