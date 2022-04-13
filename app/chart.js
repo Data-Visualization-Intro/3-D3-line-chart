@@ -74,6 +74,12 @@ async function drawLineChart() {
   //   yAxisGenerator(yAxis);
 
   const yAxis = bounds.append("g").call(yAxisGenerator);
+
+  const xAxisGenerator = d3.axisBottom().scale(xScale);
+  const xAxis = bounds
+    .append("g")
+    .call(xAxisGenerator)
+    .style("transform", `translateY(${dimensions.boundedHeight}px)`);
 }
 
 drawLineChart();
