@@ -2,15 +2,53 @@
 
 ## D3 Selections
 
-`https://github.com/d3/d3-selection`
+[D3 Selections](https://github.com/d3/d3-selection) are similar to native JavaScript selections (`document.querySelector`) but are optimized for data visualization.
 
-`d3.select('css selector')` is similar to `document.querySelector('css selector')`
+- `d3.select('css selector')` is similar to `document.querySelector('css selector')`
+- `d3.selectAll('css selector')` is similar to `document.querySelectorAll('css selector')`
 
-`d3.selectAll('css selector')` is similar to `document.querySelectorAll('css selector')`
+```html
+<body>
+  <ul>
+    <li>one</li>
+    <li>two</li>
+    <li>three</li>
+    <li>four</li>
+  </ul>
+  <script>
+    let testOne = d3.select("ul");
+    let testTwo = document.querySelector("ul");
+    console.log(testOne);
+    console.dir(testTwo);
+    let testThree = d3.selectAll("li");
+    let testFour = document.querySelectorAll("li");
+    console.dir(testThree);
+    console.log(testFour);
+  </script>
+</body>
+```
 
-Once you have a selection you use chaining to perform actions.
+Once you have a selection in D3 you use dot chaining to perform actions.
 
-`d3.select("p").text("Hello Worldwide ");` is similar to `document.querySelector("p").innerText = "foo bar";`
+```js
+d3.select("li").text("Hello Worldwide ");
+document.querySelector("li+li").innerText = "foo bar";
+```
+
+Note: CSS selectors can also be child selectors:
+
+```js
+d3.select("li:first-child").text("Hello again! ");
+document.querySelector("li:nth-child(3)").innerText = "Yay number 3!";
+```
+
+## Test in an HTML Table
+
+Add the following HTML table:
+
+```html
+
+```
 
 ```js
 d3.select(".temp").text("hot");
