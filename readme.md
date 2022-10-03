@@ -1,5 +1,329 @@
 # D3 - Data Driven Documents
 
+## D3 Selections
+
+`https://github.com/d3/d3-selection`
+
+`d3.select('css selector')` is similar to `document.querySelector('css selector')`
+
+`d3.selectAll('css selector')` is similar to `document.querySelectorAll('css selector')`
+
+Once you have a selection you use chaining to perform actions.
+
+`d3.select("p").text("Hello Worldwide ");` is similar to `document.querySelector("p").innerText = "foo bar";`
+
+```js
+d3.select(".temp").text("hot");
+d3.selectAll(".temp").text("hot");
+// compare vjs d3s
+let vjs = document.querySelectorAll("td");
+let d3s = d3.selectAll("td");
+
+d3.selectAll(".day-high .temp").text("hot");
+d3.selectAll("tr:nth-child(1) .day-high .temp").text("hot");
+```
+
+Common D3 methods for modifying attributes and styles include:
+
+- style()
+- classed()
+- attr()
+- property()
+
+Modify attributes and styles:
+
+```js
+d3.selectAll("tr:nth-child(1) .day-high .temp").attr("style", "color: red");
+d3.selectAll("tr:nth-child(1) .day-high .temp").attr("class", "hot");
+```
+
+```js
+const even = d3.selectAll("tr:nth-child(even)");
+even.attr("style", "background-color: #ddd");
+```
+
+Common D3 methods for modifying selections include:
+
+- text()
+- html()
+- append()
+- insert()
+- remove()
+
+```js
+d3.selectAll("tr:nth-child(4) .day-high")
+  .append("span")
+  .html("hot")
+  .style("background", "red")
+  .style("padding", "3px")
+  .style("margin-left", "3px")
+  .style("border-radius", "3px")
+  .style("color", "white");
+```
+
+```js
+d3.selectAll("tr:nth-child(1) .day-high .temp")
+  .attr("class", "hot")
+  .html("hot! ");
+```
+
+Is equivalent to:
+
+```js
+d3.selectAll("tr:nth-child(1) .day-high .temp")
+  .classed("hot", true)
+  .html("hot! ");
+```
+
+```js
+d3.selectAll("tr:nth-child(1) .day-high .temp")
+  .append("span")
+  .html(" high temp");
+```
+
+```js
+d3.selectAll("tr:nth-child(1) .day-high .temp")
+  .html("<strong>20</strong>")
+  .insert("span", "strong")
+  .html("high temp ");
+```
+
+```js
+d3.select("tr:nth-child(5)").remove();
+```
+
+One of the most important features of D3 is its ability is easily join data.
+
+```js
+d3.selectAll(".day-high .temp")
+  .data([145, 78, 77, 66, 56])
+  .html(function (d) {
+    return d;
+  });
+```
+
+Edit the HTML to remove the table body:
+
+```html
+<table class="table table table-hover">
+  <thead>
+    <tr class="head">
+      <th scope="col" class="head-date">Date</th>
+      <th scope="col" class="head-temp-low">Low</th>
+      <th scope="col" class="head-temp-high">High</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+```
+
+Dynamically insert the data:
+
+```js
+var mydata = [
+  { date: "4/01/2017", low: 55, high: 78 },
+  { date: "4/02/2017", low: 65, high: 83 },
+  { date: "4/03/2017", low: 77, high: 90 },
+  { date: "4/04/2017", low: 58, high: 78 },
+  { date: "4/05/2017", low: 67, high: 92 },
+];
+
+d3.select("tbody")
+  .selectAll("tr") // doesn't exist yet
+  .data(mydata)
+  .enter() // enters the selection
+  .append("tr")
+  .html(function (d) {
+    return `
+      <th scope="row">${d.date}</th>
+      <td>${d.low}</td>
+      <td>${d.high}</td>
+      `;
+  });
+```
+
+Modern alt:
+
+```js
+d3.select("tbody")
+  .selectAll("tr") // doesn't exist yet
+  .data(mydata)
+  // .enter() // enters the selection
+  .join("tr") // Appends elements to match the data that was bound
+  .html(function (d) {
+    return `
+      <th scope="row">${d.date} </th>
+      <td>${d.low}</td>
+      <td>${d.high}</td>
+      `;
+  });
+```
+
+`https://github.com/d3/d3-selection/blob/main/README.md#selection_join`
+
+## Using D3 for SVG
+
+```html
+<div id="root"></div>
+```
+
+```js
+d3.select("#root")
+  .append("svg")
+  .attr("width", 600)
+  .attr("height", 400)
+  .style("background", "#93A1A1")
+  .append("rect")
+  .attr("x", 200)
+  .attr("y", 100)
+  .attr("height", 200)
+  .attr("width", 200)
+  .style("fill", "#CB4B19");
+
+d3.select("#root svg")
+  .append("circle")
+  .attr("cx", 300)
+  .attr("cy", 200)
+  .attr("r", 50)
+  .style("fill", "#840043");
+```
+
+<!-- ```js
+const matrix = [
+  [11975, 5871, 8916, 2868],
+  [1951, 10048, 2060, 6171],
+  [8010, 16145, 8090, 8045],
+  [1013, 990, 940, 6907],
+];
+
+d3.select("body")
+  .append("table")
+  .selectAll("tr")
+  .data(matrix)
+  .join("tr")
+  .selectAll("td")
+  .data((d) => d)
+  .join("td")
+  .text((d) => d);
+```
+
+Sample: `https://observablehq.com/@d3/brushable-scatterplot` -->
+
+## A Simple Bar Chart
+
+```js
+var bardata = [20, 30, 45, 15];
+var height = 400,
+  width = 600,
+  barWidth = 50,
+  barOffset = 5;
+
+d3.select("#root")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height)
+  .style("background", "#C9D7D6")
+  .selectAll("rect")
+  .data(bardata)
+  .enter()
+  .append("rect")
+  .style("fill", "#C61C6F")
+  .attr("width", barWidth)
+  .attr("height", function (d) {
+    return d;
+  })
+  .attr("x", function (d, i) {
+    return i * (barWidth + barOffset);
+  })
+  .attr("y", function (d) {
+    return height - d;
+  });
+```
+
+Updated to ES5:
+
+```js
+const bardata = [20, 30, 45, 15];
+const dimensions = {
+  height: 400,
+  width: 600,
+  barWidth: 50,
+  barOffset: 5,
+};
+
+d3.select("#root")
+  .append("svg")
+  .attr("width", dimensions.width)
+  .attr("height", dimensions.height)
+  .style("background", "#C9D7D6")
+  .selectAll("rect")
+  .data(bardata)
+  // .enter()
+  .join("rect")
+  .style("fill", "#C61C6F")
+  .attr("width", dimensions.barWidth)
+  .attr("height", (d) => d)
+  .attr("x", (d, i) => i * (dimensions.barWidth + dimensions.barOffset))
+  .attr("y", (d) => dimensions.height - d);
+```
+
+## D3 Methods for the Chart
+
+A scale allows us to redefine data so that it fits a certain range of values.
+
+### Linear Scale
+
+The simplest scale is the Linear Scale - also known as a continuous scale - because it maps a set of input values to output values. We will use that to make our visualized data grow vertically to fit a specific range (the height of the SVG).
+
+It needs two things:
+
+- the domain is an array of values that you feed to your scale
+- the range represents the values that we want to scale our data to
+
+```js
+const yScale = d3
+  .scaleLinear()
+  .domain([0, d3.max(bardata)])
+  .range([0, dimensions.height]);
+```
+
+```js
+  .join("rect")
+  .style("fill", "#C61C6F")
+  .attr("width", dimensions.barWidth)
+  .attr("height", (d) => yScale(d)) // NEW
+  .attr("x", (d, i) => i * (dimensions.barWidth + dimensions.barOffset))
+  .attr("y", (d) => dimensions.height - yScale(d)); // NEW
+
+  console.log(yScale(bardata[0]));
+```
+
+Note: examine the DOM. The height of a bar plus the y value will equal 400. The x value uses dimensions.offset to position the bar on the x (horizontal) axis.
+
+When you have values that have some inherent order, you use an ordinal scale.
+
+In a bar chart the horizontal axis is often used to compare data over things like a period of time, so the relationship between the items is important. D3 provides a number of ordinal scales. The simplest one is a band scale (scaleBand) that allows you to create regular bar charts from data and manage the space in between them.
+
+We'll need to specify a domain and a range as well as a couple of additional methods to control the spacing in between our bars:
+
+```js
+const xScale = d3
+  .scaleBand()
+  .domain(bardata)
+  .paddingInner(0.3)
+  .paddingOuter(0.1)
+  .range([0, dimensions.width]);
+```
+
+```js
+// .attr("x", (d, i) => i * (dimensions.barWidth + dimensions.barOffset))
+.attr("x", function (d) {
+ return xScale(d);
+})
+```
+
+---
+
 In this module, we'll create a line chart that plots daily temperature using d3.
 
 Here's what our [line chart](https://dataviz-exercises.netlify.app/temperatures/index.html) will look like once we're finished.
