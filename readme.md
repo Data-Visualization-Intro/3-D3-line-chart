@@ -44,19 +44,77 @@ document.querySelector("li:nth-child(3)").innerText = "Yay number 3!";
 
 ## Test in an HTML Table
 
-Add the following HTML table:
+Add the following HTML table to the playground:
 
 ```html
-
+<div class="container">
+  <h2>Weather Forecast</h2>
+  <table class="table table-hover">
+    <thead>
+      <tr class="head">
+        <th scope="col" class="head-date">Date</th>
+        <th scope="col" class="head-temp-low">Low</th>
+        <th scope="col" class="head-temp-high">High</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="day">
+        <th scope="row" class="day-date">03/30/2021</th>
+        <td class="day-low">
+          <span class="temp">87</span>&deg; <span class="notation">F</span>
+        </td>
+        <td class="day-high">
+          <span class="temp">68</span>&deg; <span class="notation">F</span>
+        </td>
+      </tr>
+      <tr class="day">
+        <th scope="row" class="day-date">04/01/2021</th>
+        <td class="day-low">
+          <span class="temp">64</span>&deg; <span class="notation">F</span>
+        </td>
+        <td class="day-high">
+          <span class="temp">85</span>&deg; <span class="notation">F</span>
+        </td>
+      </tr>
+      <tr class="day">
+        <th scope="row" class="day-date">04/02/2021</th>
+        <td class="day-low">
+          <span class="temp">65</span>&deg; <span class="notation">F</span>
+        </td>
+        <td class="day-high">
+          <span class="temp">89</span>&deg; <span class="notation">F</span>
+        </td>
+      </tr>
+      <tr class="day">
+        <th scope="row" class="day-date">04/03/2021</th>
+        <td class="day-low">
+          <span class="temp">69</span>&deg; <span class="notation">F</span>
+        </td>
+        <td class="day-high">
+          <span class="temp">90</span>&deg; <span class="notation">F</span>
+        </td>
+      </tr>
+      <tr class="day">
+        <th scope="row" class="day-date">04/04/2021</th>
+        <td class="day-low">
+          <span class="temp">65</span>&deg; <span class="notation">F</span>
+        </td>
+        <td class="day-high">
+          <span class="temp">88</span>&deg; <span class="notation">F</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 ```
+
+Note: the HTML above is set to work with [Bootstrap](https://getbootstrap.com).
+
+Try one at a time:
 
 ```js
 d3.select(".temp").text("hot");
 d3.selectAll(".temp").text("hot");
-// compare vjs d3s
-let vjs = document.querySelectorAll("td");
-let d3s = d3.selectAll("td");
-
 d3.selectAll(".day-high .temp").text("hot");
 d3.selectAll("tr:nth-child(1) .day-high .temp").text("hot");
 ```
@@ -113,22 +171,33 @@ d3.selectAll("tr:nth-child(1) .day-high .temp")
   .html("hot! ");
 ```
 
+- append
+
 ```js
 d3.selectAll("tr:nth-child(1) .day-high .temp")
   .append("span")
   .html(" high temp");
 ```
 
+Note the chaining here. Try append instead of insert.
+
 ```js
 d3.selectAll("tr:nth-child(1) .day-high .temp")
   .html("<strong>20</strong>")
   .insert("span", "strong")
-  .html("high temp ");
+  .classed("hot", true)
+  .text("high temp ");
 ```
+
+- remove (What would happen if the order were reversed?)
 
 ```js
 d3.select("tr:nth-child(5)").remove();
+d3.select("tr:nth-child(4)").remove();
+d3.select("tr:nth-child(3)").remove();
 ```
+
+## Joining Data
 
 One of the most important features of D3 is its ability is easily join data.
 
@@ -139,6 +208,36 @@ d3.selectAll(".day-high .temp")
     return d;
   });
 ```
+
+Try with a template string:
+
+```js
+d3.selectAll(".day-high .temp")
+  .data([145, 78, 77, 66, 56])
+  .html(function (d) {
+    return `<h1>${d}</h1>`;
+  });
+```
+
+With an arrow function:
+
+```js
+d3.selectAll(".day-high .temp")
+  .data([145, 78, 77, 66, 56])
+  .html((d) => {
+    return `<h1>${d}</h1>`;
+  });
+```
+
+With an arrow function and implicit return:
+
+```js
+d3.selectAll(".day-high .temp")
+  .data([145, 78, 77, 66, 56])
+  .html((d) => `<h1>${d}</h1>`);
+```
+
+## Dynamic Data
 
 Edit the HTML to remove the table body:
 
@@ -155,17 +254,27 @@ Edit the HTML to remove the table body:
 </table>
 ```
 
-Dynamically insert the data:
+Dynamically insert some weather data and examine it with logging:
 
 ```js
 var mydata = [
-  { date: "4/01/2017", low: 55, high: 78 },
-  { date: "4/02/2017", low: 65, high: 83 },
-  { date: "4/03/2017", low: 77, high: 90 },
-  { date: "4/04/2017", low: 58, high: 78 },
-  { date: "4/05/2017", low: 67, high: 92 },
+  { date: "4/01/2021", low: 55, high: 78 },
+  { date: "4/02/2021", low: 65, high: 83 },
+  { date: "4/03/2021", low: 77, high: 90 },
+  { date: "4/04/2021", low: 58, high: 78 },
+  { date: "4/05/2021", low: 67, high: 92 },
 ];
 
+console.log(mydata[0]);
+console.log(mydata[0].date);
+for (let i = 0; i < mydata.length; i++) {
+  console.log(`The high on ${mydata[i].date} was ${mydata[i]["high"]}`);
+}
+```
+
+- bind the data:
+
+```js
 d3.select("tbody")
   .selectAll("tr") // doesn't exist yet
   .data(mydata)
@@ -180,7 +289,7 @@ d3.select("tbody")
   });
 ```
 
-Modern alt:
+An alternative with D3 [join()](https://github.com/d3/d3-selection/blob/main/README.md#selection_join):
 
 ```js
 d3.select("tbody")
@@ -197,9 +306,9 @@ d3.select("tbody")
   });
 ```
 
-`https://github.com/d3/d3-selection/blob/main/README.md#selection_join`
+## Using D3 with SVG
 
-## Using D3 for SVG
+Add the following HTML:
 
 ```html
 <div id="root"></div>
@@ -360,7 +469,7 @@ const xScale = d3
 })
 ```
 
----
+## A D3 Line Chart
 
 In this module, we'll create a line chart that plots daily temperature using d3.
 
