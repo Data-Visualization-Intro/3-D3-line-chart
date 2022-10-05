@@ -1,5 +1,9 @@
 # D3 - Data Driven Documents
 
+## Homework
+
+Replicate the simple bar chart using data from the table at the top of the page.
+
 ## D3 Selections
 
 [D3 Selections](https://github.com/d3/d3-selection) are similar to native JavaScript selections (`document.querySelector`) but are optimized for data visualization.

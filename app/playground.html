@@ -5,9 +5,95 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <!-- CSS only -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
+      crossorigin="anonymous"
+    />
+
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style></style>
   </head>
   <body>
-    <script></script>
+    <div class="container">
+      <h2>Weather Forecast</h2>
+      <table class="table table-hover">
+        <thead>
+          <tr class="head">
+            <th scope="col" class="head-date">Date</th>
+            <th scope="col" class="head-temp-low">Low</th>
+            <th scope="col" class="head-temp-high">High</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div id="root"></div>
+    </div>
+
+    <script>
+      var mydata = [
+        { date: "4/01/2021", low: 55, high: 78 },
+        { date: "4/02/2021", low: 65, high: 83 },
+        { date: "4/03/2021", low: 77, high: 90 },
+        { date: "4/04/2021", low: 58, high: 78 },
+        { date: "4/05/2021", low: 67, high: 92 },
+      ];
+
+      d3.select("tbody")
+        .selectAll("tr")
+        .data(mydata)
+        .join("tr")
+        .html(function (d) {
+          return `
+          <th scope="row">${d.date}</th>
+          <td>${d.low}</td>
+          <td>${d.high}</td>
+          `;
+        });
+
+      const bardata = [20, 30, 45, 15, 50];
+      const dimensions = {
+        height: 400,
+        width: 600,
+        barWidth: 50,
+        barOffset: 5,
+      };
+
+      const yScale = d3
+        .scaleLinear()
+        .domain([0, d3.max(bardata)])
+        .range([0, dimensions.height]);
+
+      const xScale = d3
+        .scaleBand()
+        .domain(bardata)
+        .paddingInner(0.3)
+        .paddingOuter(0.1)
+        .range([0, dimensions.width]);
+
+      d3.select("#root")
+        .append("svg")
+        .attr("width", dimensions.width)
+        .attr("height", dimensions.height)
+        .style("background", "#C9D7D6")
+        .selectAll("rect")
+        .data(bardata)
+        .join("rect")
+        .style("fill", "#C61C6F")
+        .attr("width", dimensions.barWidth)
+        // .attr("height", (d) => d)
+        .attr("height", (d) => yScale(d))
+        // .attr("x", (d, i) => i * (dimensions.barWidth + dimensions.barOffset))
+        .attr("x", function (d) {
+          return xScale(d);
+        })
+        // .attr("y", (d) => dimensions.height - d);
+        .attr("y", (d) => dimensions.height - yScale(d));
+
+      console.log(yScale(bardata[2]));
+    </script>
   </body>
 </html>
