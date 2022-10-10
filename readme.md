@@ -924,6 +924,36 @@ async function drawLineChart() {
 drawLineChart();
 ```
 
+Note: temporarily visualize the `g` element by appending a `rect` (groups cannot be filled or stroked):
+
+```js
+const bounds = wrapper
+  .append("g")
+  .style(
+    "transform",
+    `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`
+  )
+  // NEW / TEMPORARY
+  .append("rect")
+  .attr("width", `${dimensions.boundedWidth}px`)
+  .attr("height", `${dimensions.boundedHeight}px`)
+  .attr("fill", "green");
+```
+
+```js
+const measurement = wrapper
+  .append("g")
+  .style(
+    "transform",
+    `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`
+  )
+  .append("circle")
+  .attr("cx", 0)
+  .attr("cy", 0)
+  .attr("r", "12")
+  .attr("fill", "red");
+```
+
 ## Relative Scales
 
 On our y axis, we want to plot the max temperature for every day.
@@ -950,24 +980,25 @@ For our y axis, we want to convert values from the temperature domain to the pix
 
 Let's create a scale that converts those degrees into a y value. If our y axis is 200px tall, the y scale should convert 55°F into 100, the halfway point on the y axis.
 
-![scale](samples/images/d3-scales.png)
+<!-- ![scale](samples/images/d3-scales.png) -->
+
 ![scale](samples/images/scale-temp-px.png)
 
-> Test d3 scales with clamping by coding this in the playground:
+Test d3 scales:
 
 ```js
-var linearScale = d3.scaleLinear().domain([0, 100]).range([0, 600]).clamp(true);
+const temperatureRange = [0, 100];
+const yHeight = [0, 600];
 
-console.log(linearScale(-20));
+var linearScale = d3.scaleLinear().domain(temperatureRange).range(yHeight);
+console.log(linearScale(0));
 console.log(linearScale(50));
-console.log(linearScale(105));
+console.log(linearScale(100));
 
-console.log(linearScale.invert(300));
+// console.log(linearScale.invert(300));
 ```
 
-> And try `x(20)`, `x(50)` and `x(130)` in the browser console. Remove it once done.
-
-`d3-scale` can handle many different types of scales. We want to use `d3.scaleLinear()` because our y axis values will be numbers that increase linearly. To create a new scale, we create an instance of d3.scaleLinear().
+`d3-scale` can handle many different types of scales. We want to use a linear scale because our y axis values will be numbers that increase linearly. To create a new scale, we create an instance of d3.scaleLinear().
 
 Our scale needs two pieces of information:
 
@@ -981,7 +1012,13 @@ The [d3-array](https://github.com/d3/d3-array) module has a `d3.extent()` method
 1. an array of data points
 2. an accessor function which defaults to an identity function (d => d)
 
-Let's test this out by logging `d3.extent(dataset, yAccessor)` to the console. The output should be an array of two values: the minimum and maximum temperature in our dataset.
+Let's test this out by logging `d3.extent(dataset, yAccessor)` to the console.
+
+```js
+console.log(d3.extent(dataset, yAccessor));
+```
+
+The output should be an array of two values: the minimum and maximum temperature in our dataset.
 
 Let's plug that into our scale's domain:
 
@@ -989,7 +1026,7 @@ Let's plug that into our scale's domain:
 const yScale = d3.scaleLinear().domain(d3.extent(dataset, yAccessor));
 ```
 
-Next we to specify the range. The range is the highest and lowest number we want our scale to output — in this case, the maximum & minimum number of pixels our point will be from the x axis.
+Next we specify the range. The range is the highest and lowest number we want our scale to output — in this case, the maximum & minimum number of pixels our point will be from the x axis.
 
 We will use our `boundedHeight` to stay within our margins. Remember, SVG y-values count from top to bottom so we want our range to start at the top.
 
@@ -1002,7 +1039,9 @@ const yScale = d3
 
 Let's test it by logging some values to the console. At what y value is the freezing point on our chart?
 
-`console.log(yScale(32))`
+```js
+console.log(yScale(32));
+```
 
 The logged number should tell us how far away the freezing point will be from the top of the svg.
 
@@ -1029,10 +1068,11 @@ const freezingTemperatures = bounds
   .attr("width", dimensions.boundedWidth)
   .attr("y", freezingTemperaturePlacement)
   .attr("height", dimensions.boundedHeight - freezingTemperaturePlacement)
+  // NEW
   .attr("fill", "#87ceed");
 ```
 
-Look at the rectangle in the Elements panel to see how the .attr() methods manipulated it.
+Drop down the rectangle in the Elements panel to examine the `.attr()` methods on the rect.
 
 ```js
 <rect
@@ -1049,6 +1089,12 @@ Look at the rectangle in the Elements panel to see how the .attr() methods manip
 > We're using .attr() to set the fill because an attribute has a lower CSS precedence than linked stylesheets, which will let us overwrite the value. If we used `.style()` we'd be setting an inline style which would require an `!important` CSS declaration to override.
 
 ## JavaScript Dates and Scales
+
+```js
+let date1 = new Date();
+let start = Date.now();
+let date2 = new Date("December 17, 1995 03:24:00");
+```
 
 Run the below in the playground:
 
@@ -1067,7 +1113,7 @@ console.log(timeScale(new Date()));
 console.log(timeScale.invert(50));
 ```
 
-Note the JavaScript month start at 0. Invert returns the date from a number within our range.
+Note: in JavaScript months start at 0. Invert returns the date from a number within our range.
 
 Create a scale for the x axis. This will look like our y axis but, since we're working with date objects, we'll use a time scale which knows how to handle date objects.
 
@@ -1765,3 +1811,46 @@ Here are a few resources for finding interesting datasets:
 [Data is Plural](https://docs.google.com/spreadsheets/d/1wZhPLMCHKJvwOkP4juclhjFgqIY8fQFMemwKL2c64vk/edit#gid=0)
 
 [The Pudding datasets](https://github.com/the-pudding/data)
+
+## Notes
+
+A simple highcharts line chart.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+  </head>
+
+  <body>
+    <div id="container" style="width: 100%; height: 400px"></div>
+  </body>
+  <script>
+    Highcharts.chart("container", {
+      title: {
+        text: "U.S Solar Employment Growth",
+      },
+      yAxis: {
+        title: {
+          text: "Number of Employees",
+        },
+      },
+
+      series: [
+        {
+          name: "Installation & Developers",
+          data: [
+            43934, 48656, 65165, 81827, 112143, 142383, 171533, 165174, 155157,
+            161454, 154610,
+          ],
+        },
+      ],
+    });
+  </script>
+</html>
+```
