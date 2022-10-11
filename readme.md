@@ -532,11 +532,24 @@ drawLineChart();
 
 Open `index.html` using Live Server and examine the console.
 
-`await` is a JavaScript keyword pauses execution until a Promise is resolved.
+`await` is a JavaScript keyword that allows JS to run while a long running task takes place in the background.
+
+> Asynchronous programming is a technique that enables your program to start a potentially long-running task and still be able to be responsive to other events while that task runs, rather than having to wait until that task has finished. Once that task has finished, your program is presented with the result. - [MDN](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous)
+
+Try running the demo on [MDN](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Introducing#a_long-running_synchronous_function).
 
 Note that the `drawLineChart()` function declaration is preceded by the keyword `async`. `await` will only work within an function maked as `async`.
 
-This means that any code after `await d3.json("./data/my_weather_data.json")` will run only after dataset is defined.
+Demo: `console.log` fires before the data set is available
+
+```js
+function drawLineChart() {
+  const dataset = d3.json("./data/my_weather_data.json");
+  console.log(dataset);
+}
+
+drawLineChart();
+```
 
 ## Examine the Data
 
@@ -583,18 +596,15 @@ const xAccessor = (d) => d.date;
 console.log(xAccessor(dataset[0]));
 ```
 
-The date value in our dataset is a string.
+The date value in our dataset is a string - `"date": "2021-01-01"`
 
-Unfortunately, this string won't work on our x axis. We know how far "2018-12-25" is from "2018-12-29" but a computer needs a date in a form it can work with.
+This string won't work in JavaScript. _We_ know how far "2021-12-25" is from "2021-12-29" but a computer needs a date in a form it can work with.
 
-JavaScript `Date` objects represent a single moment in time in a platform-independent format
+A JavaScript `Date` objects represent a single moment in time in a platform-independent format
 
-We need to convert the dataset strings into JavaScript Dates. d3 has a [d3-time-format](https://github.com/d3/d3-time-format) module with methods for parsing and formatting dates.
+We need to convert our dataset strings into JavaScript Dates. d3 has a [d3-time-format](https://github.com/d3/d3-time-format) module with methods for parsing and formatting dates.
 
-The `d3.timeParse()` method:
-
-- takes a string specifying a date format, and
-- outputs a function that will parse dates of that format.
+The `d3.timeParse()` method takes a string specifying a date format, and outputs a function that will parse dates of that format.
 
 For example, `d3.timeParse("%Y")` will parse a string (create a Date object) with just a year (e.g. "2021").
 
@@ -605,7 +615,9 @@ async function drawLineChart() {
   const dataset = await d3.json("./data/my_weather_data.json");
 
   const yAccessor = (d) => d.temperatureMax;
+  // NEW
   const dateParser = d3.timeParse("%Y-%m-%d");
+  // NEW
   const xAccessor = (d) => dateParser(d.date);
   console.log(xAccessor(dataset[0]));
 }
@@ -617,7 +629,9 @@ When we call `xAccessor(dataset[0])` we get the first day's date as a [JavaScrip
 
 ### Why Accessor Functions?
 
-Defining accessor functions are a best practice. Creating separate functions to read the values from our data points helps us in a many ways:
+As we will see, defining accessor functions are a best practice.
+
+Creating separate functions to read the values from our data points helps us in a many ways:
 
 - Easy changes: every chart is likely to change — whether that change is due to business requirements, design, or data structure. These changing requirements are especially prevalent when creating dashboards with dynamic data, where you might need to handle a new edge case two months later. Having accessor functions in one place in a chart file makes them easy to update.
 - Documentation: having these functions at the top of a file can give you a quick reminder of what metrics the chart is plotting and the structure of the data.
@@ -629,22 +643,20 @@ When drawing a chart, there are two containers whose dimensions we need to defin
 
 ![terminology](samples/images/terminology.png)
 
-The `wrapper` contains the entire chart: the data elements, the axes, the labels, etc. Every SVG element will be contained inside here.
+The `wrapper` contains the entire chart: the data elements, the axes, the labels, etc.
 
-The `bounds` contain all of our data elements: in this case, our line.
+The `bounds` contain all of our data elements (in this case, our graph line).
 
 This distinction will help us separate the amount of space we need for extraneous elements (axes, labels), and let us focus on our main task: plotting our data.
 
 When adding a chart to a webpage, we start with the amount of space we have available for the chart. Then we decide how much space we need for the margins, which will accommodate the chart axes and labels. What's left is how much space we have for our data elements.
 
-We will rarely have the option to decide how large our timeline is and then build up from there. Our charts will need to be accommodating of window sizes, surrounding text, and more.
-
 > A quick note on JavaScript objects:
 
 ```js
 let arr = [1, "text", true];
-console.log(obj[2]);
-console.log(typeof obj[2]);
+console.log(arr[2]);
+console.log(typeof arr[2]);
 
 let obj = {
   a: 1,
@@ -780,8 +792,6 @@ Expand the `_groups` key, and note that the linked element is our new <svg> elem
 
 Hover over the <svg> element and the browser will highlight the corresponding DOM element on the webpage and show the element's size: 300px by 150px - the default size for SVG elements in Google Chrome.
 
-SVG elements don't scale the way most DOM elements do — there are many rules that will be unfamiliar to experienced web developers.
-
 D3 selection objects have an `.attr()` method that will add or replace an attribute on the selected DOM element. The first argument is the attribute name and the second argument is the value.
 
 ```js
@@ -876,7 +886,7 @@ const bounds = wrapper
   );
 ```
 
-The <g> element size is 0px by 0px — instead of taking a width or height attribute, a <g> element will expand to fit its contents.
+The `<g>` element size is 0px by 0px — instead of taking a width or height attribute, a <g> element will expand to fit its contents.
 
 So far:
 
@@ -940,6 +950,8 @@ const bounds = wrapper
   .attr("fill", "green");
 ```
 
+Add a small circle to our SVG to remind us of the coordinate system:
+
 ```js
 const measurement = wrapper
   .append("g")
@@ -995,7 +1007,7 @@ console.log(linearScale(0));
 console.log(linearScale(50));
 console.log(linearScale(100));
 
-// console.log(linearScale.invert(300));
+console.log(linearScale.invert(300));
 ```
 
 `d3-scale` can handle many different types of scales. We want to use a linear scale because our y axis values will be numbers that increase linearly. To create a new scale, we create an instance of d3.scaleLinear().
@@ -1018,9 +1030,9 @@ Let's test this out by logging `d3.extent(dataset, yAccessor)` to the console.
 console.log(d3.extent(dataset, yAccessor));
 ```
 
-The output should be an array of two values: the minimum and maximum temperature in our dataset.
+The output is an array of two values: the minimum and maximum temperature in our dataset.
 
-Let's plug that into our scale's domain:
+Let's plug that into a scale's domain:
 
 ```js
 const yScale = d3.scaleLinear().domain(d3.extent(dataset, yAccessor));
@@ -1074,6 +1086,8 @@ const freezingTemperatures = bounds
 
 Drop down the rectangle in the Elements panel to examine the `.attr()` methods on the rect.
 
+E.g.:
+
 ```js
 <rect
   x="0"
@@ -1094,6 +1108,7 @@ Drop down the rectangle in the Elements panel to examine the `.attr()` methods o
 let date1 = new Date();
 let start = Date.now();
 let date2 = new Date("December 17, 1995 03:24:00");
+let date3 = new Date(2021, 0, 1);
 ```
 
 Run the below in the playground:
@@ -1193,7 +1208,20 @@ drawLineChart();
 
 ## Drawing the Timeline
 
-The timeline itself will be a single path SVG element. As we have seen, path elements take a `d` (data) attribute that creates the shape.
+The timeline itself will be a single _path_ SVG element. As we have seen, path elements take a `d` (data) attribute that creates the shape.
+
+E.g.:
+
+```js
+<svg width="640" height="480">
+  <path
+    d="M20,230 Q40,205 50,230 T90,230"
+    fill="none"
+    stroke="blue"
+    stroke-width="5"
+  />
+</svg>
+```
 
 [d3-shape](https://github.com/d3/d3-shape) has a `d3.line()` method that creates a generator that converts data points into a d string:
 
@@ -1201,8 +1229,8 @@ The timeline itself will be a single path SVG element. As we have seen, path ele
 
 Our generator needs two pieces of information:
 
-1. how to find an x axis value, and
-2. how to find a y axis value.
+1. how to find an x axis value
+2. how to find a y axis value
 
 We set these values with the x and y method, respectively, which each take one parameter: a function to convert a data point into an x or y value.
 
@@ -1488,6 +1516,161 @@ async function drawLineChart() {
 drawLineChart();
 ```
 
+## Homework
+
+Choose a dataset below to play with -- you'll want to pick one with a metric that changes over time.
+
+Here are a few suggestions:
+
+- look at how many colors Bob Ross used in his paintings over time
+- look at how many opera performances there were for different composers, each year
+- look at the height of newly constructed lighthouses over time
+
+Make a copy of the timeline project, download the data, and import it into your new project.
+
+> If the data is a csv file, you'll need to use d3.csv() instead of d3.json().
+
+Go over the same steps we went through this week to make a timeline with this new data.
+
+If you get stuck, review the notes or watch this week's videos again.
+
+### Datasets
+
+#### Bob Ross paintings
+
+Info about ~400 paintings by Bob Ross
+
+[info](https://github.com/jwilber/Bob_Ross_Paintings)
+
+Metrics: painting number, image url, title, season, episode, # unique colors, YouTube link, colors used
+
+[raw data](https://raw.githubusercontent.com/jwilber/Bob_Ross_Paintings/master/data/bob_ross_paintings.csv)
+
+#### Opera performances
+
+Info about six seasons of global opera performances (2012 - 2018).
+
+[info](https://www.operabase.com/en)
+
+Metrics: season start & end, composer name, date of birth & death, nationality, gender, work, type of work
+
+[raw data](https://dataverse.harvard.edu/api/access/datafile/4145300)
+
+#### Witch Trials
+
+Data on more than 10 thousand witch trials & related battles in Europe.
+
+[info](https://www.peterleeson.com/Witch_Trials.pdf)
+
+Metrics about battles: name, date, location, war name, source
+
+[raw data about battles](https://github.com/JakeRuss/witch-trials/blob/master/data/battles.csv)
+
+Metrics about trials: year, tried, deaths, place, source
+
+[raw data about trials](https://github.com/JakeRuss/witch-trials/blob/master/data/trials.csv)
+
+#### First kisses
+
+This is a list of artist Galen Beebe's 48 first kisses.
+
+[info (a visual essay)](http://beebe-west.com/viz/kiss-list/)
+
+Metrics: age comparison, where, when, gender, orientation, if it was their last kiss, their sun sign, and lots of subjective info like how much Galen enjoyed it
+
+[raw data](https://github.com/jswest/kiss-list-refresh/blob/master/public/data.json.js)
+
+#### UK Lighthouses
+
+Info about more than 600 lighthouses & related buildings in England & Wales between 1514 - 1911. You'll need to convert the xlsx file to csv, there are lots of tools out there [like this one](https://cloudconvert.com/xlsx-to-csv).
+
+[info](https://www.sciencedirect.com/science/article/pii/S2352340920308854)
+
+Metrics: name, location, number of lights in different time periods, visibility, height, construction year
+
+[raw data (under available files)](https://reshare.ukdataservice.ac.uk/854172/)
+
+#### Penguins
+
+A dataset about physical characteristics of penguins in three separate species.
+
+[info](https://allisonhorst.github.io/palmerpenguins/)
+
+Metrics: species, island, bill length & depth, flipper length, weight, sex
+
+[raw data](https://github.com/ttimbers/palmerpenguins/blob/aef2d7c48466b88dcfe0832a67b0a270607f1737/inst/extdata/penguins.tsv)
+
+#### MMA Fighter stats
+
+Some good numeric data in here, looking at MMA fighters & boxers.
+
+[info](https://www.biorxiv.org/node/677784.external-links.html)
+
+Metrics: name, nickname, height, weight, reach, stance, wins, losses, draws, total fights, win percent
+
+[raw data](https://osf.io/3fkma/)
+
+#### Love Island contestants
+
+Apparently there's a [British dating reality show called Love Island](<https://en.wikipedia.org/wiki/Love_Island_(2015_TV_series)>). Here's a dataset of info about each contestant.
+
+[info](https://github.com/amynic/love-island-workshop)
+
+Metrics: name, series year outcome, age, profession, where they live, gender, and lots of show-specific info
+
+[raw data](https://github.com/amynic/love-island-workshop/blob/master/data%20vizualisation/love-island-historical-dataset.csv)
+
+#### More datasets
+
+Here are a few resources for finding interesting datasets:
+
+[Data is Plural](https://docs.google.com/spreadsheets/d/1wZhPLMCHKJvwOkP4juclhjFgqIY8fQFMemwKL2c64vk/edit#gid=0)
+
+[The Pudding datasets](https://github.com/the-pudding/data)
+
+## Notes
+
+A simple highcharts line chart.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+  </head>
+
+  <body>
+    <div id="container" style="width: 100%; height: 400px"></div>
+  </body>
+  <script>
+    Highcharts.chart("container", {
+      title: {
+        text: "U.S Solar Employment Growth",
+      },
+      yAxis: {
+        title: {
+          text: "Number of Employees",
+        },
+      },
+
+      series: [
+        {
+          name: "Installation & Developers",
+          data: [
+            43934, 48656, 65165, 81827, 112143, 142383, 171533, 165174, 155157,
+            161454, 154610,
+          ],
+        },
+      ],
+    });
+  </script>
+</html>
+```
+
 ## Instructor Notes
 
 ### Quantize Scales
@@ -1697,160 +1880,5 @@ Review with getter and setter methods, coding style (chaining) and additional me
           .text("submit");
     </script>
   </body>
-</html>
-```
-
-## Homework
-
-Choose a dataset below to play with -- you'll want to pick one with a metric that changes over time.
-
-Here are a few suggestions:
-
-- look at how many colors Bob Ross used in his paintings over time
-- look at how many opera performances there were for different composers, each year
-- look at the height of newly constructed lighthouses over time
-
-Make a copy of the timeline project, download the data, and import it into your new project.
-
-> If the data is a csv file, you'll need to use d3.csv() instead of d3.json().
-
-Go over the same steps we went through this week to make a timeline with this new data.
-
-If you get stuck, review the notes or watch this week's videos again.
-
-### Datasets
-
-#### Bob Ross paintings
-
-Info about ~400 paintings by Bob Ross
-
-[info](https://github.com/jwilber/Bob_Ross_Paintings)
-
-Metrics: painting number, image url, title, season, episode, # unique colors, YouTube link, colors used
-
-[raw data](https://raw.githubusercontent.com/jwilber/Bob_Ross_Paintings/master/data/bob_ross_paintings.csv)
-
-#### Opera performances
-
-Info about six seasons of global opera performances (2012 - 2018).
-
-[info](https://www.operabase.com/en)
-
-Metrics: season start & end, composer name, date of birth & death, nationality, gender, work, type of work
-
-[raw data](https://dataverse.harvard.edu/api/access/datafile/4145300)
-
-#### Witch Trials
-
-Data on more than 10 thousand witch trials & related battles in Europe.
-
-[info](https://www.peterleeson.com/Witch_Trials.pdf)
-
-Metrics about battles: name, date, location, war name, source
-
-[raw data about battles](https://github.com/JakeRuss/witch-trials/blob/master/data/battles.csv)
-
-Metrics about trials: year, tried, deaths, place, source
-
-[raw data about trials](https://github.com/JakeRuss/witch-trials/blob/master/data/trials.csv)
-
-#### First kisses
-
-This is a list of artist Galen Beebe's 48 first kisses.
-
-[info (a visual essay)](http://beebe-west.com/viz/kiss-list/)
-
-Metrics: age comparison, where, when, gender, orientation, if it was their last kiss, their sun sign, and lots of subjective info like how much Galen enjoyed it
-
-[raw data](https://github.com/jswest/kiss-list-refresh/blob/master/public/data.json.js)
-
-#### UK Lighthouses
-
-Info about more than 600 lighthouses & related buildings in England & Wales between 1514 - 1911. You'll need to convert the xlsx file to csv, there are lots of tools out there [like this one](https://cloudconvert.com/xlsx-to-csv).
-
-[info](https://www.sciencedirect.com/science/article/pii/S2352340920308854)
-
-Metrics: name, location, number of lights in different time periods, visibility, height, construction year
-
-[raw data (under available files)](https://reshare.ukdataservice.ac.uk/854172/)
-
-#### Penguins
-
-A dataset about physical characteristics of penguins in three separate species.
-
-[info](https://allisonhorst.github.io/palmerpenguins/)
-
-Metrics: species, island, bill length & depth, flipper length, weight, sex
-
-[raw data](https://github.com/ttimbers/palmerpenguins/blob/aef2d7c48466b88dcfe0832a67b0a270607f1737/inst/extdata/penguins.tsv)
-
-#### MMA Fighter stats
-
-Some good numeric data in here, looking at MMA fighters & boxers.
-
-[info](https://www.biorxiv.org/node/677784.external-links.html)
-
-Metrics: name, nickname, height, weight, reach, stance, wins, losses, draws, total fights, win percent
-
-[raw data](https://osf.io/3fkma/)
-
-#### Love Island contestants
-
-Apparently there's a [British dating reality show called Love Island](<https://en.wikipedia.org/wiki/Love_Island_(2015_TV_series)>). Here's a dataset of info about each contestant.
-
-[info](https://github.com/amynic/love-island-workshop)
-
-Metrics: name, series year outcome, age, profession, where they live, gender, and lots of show-specific info
-
-[raw data](https://github.com/amynic/love-island-workshop/blob/master/data%20vizualisation/love-island-historical-dataset.csv)
-
-#### More datasets
-
-Here are a few resources for finding interesting datasets:
-
-[Data is Plural](https://docs.google.com/spreadsheets/d/1wZhPLMCHKJvwOkP4juclhjFgqIY8fQFMemwKL2c64vk/edit#gid=0)
-
-[The Pudding datasets](https://github.com/the-pudding/data)
-
-## Notes
-
-A simple highcharts line chart.
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-  </head>
-
-  <body>
-    <div id="container" style="width: 100%; height: 400px"></div>
-  </body>
-  <script>
-    Highcharts.chart("container", {
-      title: {
-        text: "U.S Solar Employment Growth",
-      },
-      yAxis: {
-        title: {
-          text: "Number of Employees",
-        },
-      },
-
-      series: [
-        {
-          name: "Installation & Developers",
-          data: [
-            43934, 48656, 65165, 81827, 112143, 142383, 171533, 165174, 155157,
-            161454, 154610,
-          ],
-        },
-      ],
-    });
-  </script>
 </html>
 ```
