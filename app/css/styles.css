@@ -1,0 +1,8 @@
+svg {
+  border: 1px solid #666;
+}
+
+g rect {
+  fill: #87ceed;
+  opacity: 0.5;
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+  </head>
+
+  <body>
+    <div id="container" style="width: 100%; height: 400px"></div>
+  </body>
+  <script>
+    Highcharts.chart("container", {
+      title: {
+        text: "U.S Solar Employment Growth",
+      },
+      yAxis: {
+        title: {
+          text: "Number of Employees",
+        },
+      },
+
+      series: [
+        {
+          name: "Installation & Developers",
+          data: [
+            43934, 48656, 65165, 81827, 112143, 142383, 171533, 165174, 155157,
+            161454, 154610,
+          ],
+        },
+      ],
+    });
+  </script>
+</html>
